@@ -80,8 +80,8 @@ ssl_key_file = server.key
 
 
 [kong_proxy]
-# Enable the /proxy for testing without kong infrastructure
-enabled = True
+# Enable the /proxy for testing without kong infrastructure, requires url
+enabled = False
 # Url to proxy to. Could be a local NVI or PRS backend, or something like https://httpbin.org/headers
 url =
 # Forward a client-supplied X-GF-Correlation-ID to the backend instead of stripping
