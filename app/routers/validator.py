@@ -90,14 +90,14 @@ def _validate_oin(
     claims = json.loads(verified_token.claims)
 
     act = claims.get("act")
-    if act is None:
+    if not isinstance(act, dict):
         gflog.emit(
             logger,
             Log.MISSING_ACT_CLAIM,
-            "Missing act in claims",
+            "Missing or invalid act in claims",
             fields=_client_fields(auth_headers, claims),
         )
-        return PlainTextResponse("Missing `act` in claims", status_code=400)
+        return PlainTextResponse("Missing or invalid `act` in claims", status_code=400)
 
     act_sub = act.get("sub")
     if not act_sub:
@@ -186,7 +186,10 @@ def _validate_oin(
                             "summary": "JWT verification failed",
                             "value": "Token verification failed",
                         },
-                        "missing_act": {"summary": "Missing act claim", "value": "Missing `act` in claims"},
+                        "missing_act": {
+                            "summary": "Missing or invalid act claim",
+                            "value": "Missing or invalid `act` in claims",
+                        },
                         "missing_oin": {
                             "summary": "Missing acting organization identifier",
                             "value": "Missing OIN claim in token",

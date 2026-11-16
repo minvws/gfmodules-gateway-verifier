@@ -128,19 +128,22 @@ def test_jwt_verify_failure_logs_001(
     assert record.error_reason == "expired"  # type: ignore[attr-defined]
 
 
-def test_missing_act_logs_missing_act_claim(
-    client: TestClient, jwt_service: MagicMock, caplog: pytest.LogCaptureFixture
+@pytest.mark.parametrize("act", [{}, {"act": "not-an-object"}])
+def test_missing_or_invalid_act_logs_missing_act_claim(
+    client: TestClient, jwt_service: MagicMock, caplog: pytest.LogCaptureFixture, act: dict[str, str]
 ) -> None:
     token = MagicMock()
     token.claims = json.dumps(
         {
             "sub": OTHER_ORGANIZATION_ID,
             "cnf": {"x5t#S256": "validthumbprint"},
+            **act,
         }
     )
     jwt_service.verify.return_value = token
     with caplog.at_level(logging.DEBUG):
-        client.get("/validate", headers=headers())
+        response = client.get("/validate", headers=headers())
+    assert response.status_code == 400
     record = _record(caplog, Log.MISSING_ACT_CLAIM.event_id)
     assert record.certificate_organization_identifier == CLIENT_ORGANIZATION_ID  # type: ignore[attr-defined]
 
