@@ -70,7 +70,7 @@ def test_authorization_mismatch_drops_resource_id_from_siem(
     assert siem_msg["certificate_organization_identifier"] == "00000123"
 
 
-def test_success_carries_both_organizations_in_app_and_siem(
+def test_success_keeps_token_id_out_of_siem(
     streams: Streams,
 ) -> None:
     logger, app_messages, siem_messages = streams
@@ -82,9 +82,12 @@ def test_success_carries_both_organizations_in_app_and_siem(
             fields={
                 "certificate_organization_identifier": "00000123",
                 "represented_organization_identifier": "00000456",
+                "token_id": "token-1",
             },
         )
 
+    assert app_messages[0]["token_id"] == "token-1"
+    assert "token_id" not in siem_messages[0]
     for msg in (app_messages[0], siem_messages[0]):
         assert msg["certificate_organization_identifier"] == "00000123"
         assert msg["represented_organization_identifier"] == "00000456"

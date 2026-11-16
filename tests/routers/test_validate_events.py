@@ -27,6 +27,7 @@ CLIENT_COMMON_NAME = "common-name"
 ORGANIZATION_ID = "00000001123456780000"
 OTHER_ORGANIZATION_ID = "00000002987654321000"
 CLIENT_ID = "client-1"
+TOKEN_ID = "token-1"
 
 
 @pytest.fixture(autouse=True)
@@ -59,6 +60,7 @@ def jwt_service():
             "aud": "test-audience",
             "scope": "test-scope",
             "client_id": CLIENT_ID,
+            "jti": TOKEN_ID,
             "cnf": {"x5t#S256": "validthumbprint"},
         }
     )
@@ -191,6 +193,8 @@ def test_common_name_mismatch_logs_common_name_authorization_mismatch(
         client.get("/validate", headers=headers())
     record = _record(caplog, Log.COMMON_NAME_AUTHORIZATION_MISMATCH.event_id)
     assert record.certificate_organization_identifier == CLIENT_ORGANIZATION_ID  # type: ignore[attr-defined]
+    assert record.token_common_name == "other-common-name"  # type: ignore[attr-defined]
+    assert record.client_domains == [CLIENT_COMMON_NAME]  # type: ignore[attr-defined]
 
 
 def test_success_logs_004(client: TestClient, caplog: pytest.LogCaptureFixture) -> None:
@@ -200,4 +204,6 @@ def test_success_logs_004(client: TestClient, caplog: pytest.LogCaptureFixture) 
     record = _record(caplog, Log.AUTHENTICATION_SUCCESS.event_id)
     assert record.certificate_organization_identifier == CLIENT_ORGANIZATION_ID  # type: ignore[attr-defined]
     assert record.represented_organization_identifier == ORGANIZATION_ID  # type: ignore[attr-defined]
+    assert record.client_id == CLIENT_ID  # type: ignore[attr-defined]
+    assert record.token_id == TOKEN_ID  # type: ignore[attr-defined]
     assert not hasattr(record, "claims")

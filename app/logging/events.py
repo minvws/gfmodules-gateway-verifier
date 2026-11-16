@@ -37,6 +37,7 @@ class Log(_Base):
                 "resource_organization_identifier",
                 "resource_id",
                 "client_id",
+                "token_id",
             ),
             _SIEM: ("certificate_organization_identifier", "resource_organization_identifier", "client_id"),
         },
@@ -46,7 +47,7 @@ class Log(_Base):
         logging.WARNING,
         (_APP, _SIEM),
         {
-            _APP: ("certificate_organization_identifier", "client_id"),
+            _APP: ("certificate_organization_identifier", "client_id", "token_id"),
             _SIEM: ("certificate_organization_identifier", "client_id"),
         },
     )
@@ -55,7 +56,7 @@ class Log(_Base):
         logging.WARNING,
         (_APP, _SIEM),
         {
-            _APP: ("certificate_organization_identifier", "client_id"),
+            _APP: ("certificate_organization_identifier", "client_id", "token_id"),
             _SIEM: ("certificate_organization_identifier", "client_id"),
         },
     )
@@ -64,7 +65,13 @@ class Log(_Base):
         logging.WARNING,
         (_APP, _SIEM),
         {
-            _APP: ("certificate_organization_identifier", "client_id"),
+            _APP: (
+                "certificate_organization_identifier",
+                "client_id",
+                "token_id",
+                "token_common_name",
+                "client_domains",
+            ),
             _SIEM: ("certificate_organization_identifier", "client_id"),
         },
     )
@@ -73,7 +80,12 @@ class Log(_Base):
         logging.INFO,
         (_APP, _SIEM),
         {
-            _APP: ("certificate_organization_identifier", "represented_organization_identifier"),
+            _APP: (
+                "certificate_organization_identifier",
+                "represented_organization_identifier",
+                "client_id",
+                "token_id",
+            ),
             _SIEM: ("certificate_organization_identifier", "represented_organization_identifier"),
         },
     )

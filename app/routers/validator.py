@@ -27,6 +27,7 @@ def _client_fields(auth_headers: AuthHeaders, claims: dict[str, Any]) -> dict[st
     return {
         "certificate_organization_identifier": auth_headers.certificate_organization_identifier,
         "client_id": claims.get("client_id"),
+        "token_id": claims.get("jti"),
     }
 
 
@@ -123,7 +124,11 @@ def _validate_oin(
             logger,
             Log.COMMON_NAME_AUTHORIZATION_MISMATCH,
             "JWT act.cn does not match certificate CommonName or SAN",
-            fields=_client_fields(auth_headers, claims),
+            fields={
+                **_client_fields(auth_headers, claims),
+                "token_common_name": act_cn,
+                "client_domains": auth_headers.client_domains,
+            },
         )
 
         return PlainTextResponse("JWT `act.cn` does not match certificate CommonName", status_code=400)
@@ -145,10 +150,7 @@ def _validate_oin(
         logger,
         Log.AUTHENTICATION_SUCCESS,
         "successfully validated JWT + Client",
-        fields={
-            "certificate_organization_identifier": auth_headers.certificate_organization_identifier,
-            "represented_organization_identifier": claims.get("sub"),
-        },
+        fields={**_client_fields(auth_headers, claims), "represented_organization_identifier": claims.get("sub")},
     )
 
     return JSONResponse(headers, status_code=200)
