@@ -3,8 +3,9 @@ from typing import Any
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from gfmodules.logging import LoggingStreams
+from gfmodules.logging import ConfigLogging, LoggingStreams, internal_logger_name
 from gfmodules.logging.middleware import RequestContextMiddleware
+from gfmodules.logging.registry import register_config
 from gfmodules.logging.testing import capture_records, capture_stream
 from pytest_mock import MockerFixture
 
@@ -45,3 +46,25 @@ def test_an_unhandled_exception_answers_500_and_reaches_app_and_siem() -> None:
     assert app_stream[0]["exception_type"] == "RuntimeError"
     assert app_stream[0]["endpoint"] == "/boom"
     assert siem_stream[0]["exception_type"] == "RuntimeError"
+
+
+def test_a_request_without_correlation_id_reaches_app_and_siem() -> None:
+    register_config(ConfigLogging(correlation_id_expected=True))
+    fastapi = FastAPI()
+
+    @fastapi.get("/ok")
+    def ok() -> None:
+        return None
+
+    fastapi.add_middleware(RequestContextMiddleware)
+
+    with (
+        capture_stream(LoggingStreams.APP, internal_logger_name()) as app_stream,
+        capture_stream(LoggingStreams.SIEM, internal_logger_name()) as siem_stream,
+    ):
+        TestClient(fastapi).get("/ok")
+
+    for stream in (app_stream, siem_stream):
+        assert len(stream) == 1
+        assert stream[0]["endpoint"] == "/ok"
+        assert stream[0]["method"] == "GET"

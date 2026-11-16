@@ -58,3 +58,4 @@ Every event carries these on every stream, whenever the request context holds a 
 | `SYS_APP_STOPPED` | 200602 | INFO | `shutdown_reason` |
 | `SYS_APP_CRASHED` | 200602 | CRITICAL | `shutdown_reason` |
 | `SYS_UNHANDLED_EXCEPTION` | 200604 | ERROR | `exception_type`, `endpoint`, `method` |
+| `SYS_MISSING_CORRELATION_ID` | 200628 | ERROR | *none* |
