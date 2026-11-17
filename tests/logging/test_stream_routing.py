@@ -52,7 +52,7 @@ def test_authorization_mismatch_drops_token_id_from_siem(
         "mismatch",
         fields={
             "certificate_organization_identifier": "00000123",
-            "resource_organization_identifier": "00000001",
+            "token_organization_identifier": "00000001",
             "token_id": "token-1",
             "client_id": "00000001",
         },
@@ -65,8 +65,8 @@ def test_authorization_mismatch_drops_token_id_from_siem(
     assert "token_id" not in siem_msg
     assert app_msg["method"] == "GET"
     assert siem_msg["method"] == "GET"
-    # resource_organization_identifier/certificate_organization_identifier in both
-    assert siem_msg["resource_organization_identifier"] == "00000001"
+    # token_organization_identifier/certificate_organization_identifier in both
+    assert siem_msg["token_organization_identifier"] == "00000001"
     assert siem_msg["certificate_organization_identifier"] == "00000123"
 
 

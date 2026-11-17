@@ -28,7 +28,7 @@ Every event carries these on every stream, whenever the request context holds a 
 | --- | --- | --- | --- |
 | `JWT_VERIFICATION_FAILED` | 200400 | WARNING | `error_reason`, `token_present` |
 | `MALFORMED_AUTHORIZATION_HEADER` | 200409 | WARNING | `error_reason`, `token_present` |
-| `ORGANIZATION_AUTHORIZATION_MISMATCH` | 200407 | WARNING | `certificate_organization_identifier`, `resource_organization_identifier`, `client_id`, `token_id` |
+| `ORGANIZATION_AUTHORIZATION_MISMATCH` | 200407 | WARNING | `certificate_organization_identifier`, `token_organization_identifier`, `client_id`, `token_id` |
 | `MISSING_ORGANIZATION_CLAIM` | 200408 | WARNING | `certificate_organization_identifier`, `client_id`, `token_id` |
 | `MISSING_ACT_CLAIM` | 200410 | WARNING | `certificate_organization_identifier`, `client_id`, `token_id` |
 | `COMMON_NAME_AUTHORIZATION_MISMATCH` | 200411 | WARNING | `certificate_organization_identifier`, `client_id`, `token_id`, `token_common_name`, `client_domains` |
@@ -48,7 +48,7 @@ Every event carries these on every stream, whenever the request context holds a 
 | --- | --- | --- | --- |
 | `JWT_VERIFICATION_FAILED` | 200400 | WARNING | `error_reason`, `token_present` |
 | `MALFORMED_AUTHORIZATION_HEADER` | 200409 | WARNING | `error_reason`, `token_present` |
-| `ORGANIZATION_AUTHORIZATION_MISMATCH` | 200407 | WARNING | `certificate_organization_identifier`, `resource_organization_identifier`, `client_id` |
+| `ORGANIZATION_AUTHORIZATION_MISMATCH` | 200407 | WARNING | `certificate_organization_identifier`, `token_organization_identifier`, `client_id` |
 | `MISSING_ORGANIZATION_CLAIM` | 200408 | WARNING | `certificate_organization_identifier`, `client_id` |
 | `MISSING_ACT_CLAIM` | 200410 | WARNING | `certificate_organization_identifier`, `client_id` |
 | `COMMON_NAME_AUTHORIZATION_MISMATCH` | 200411 | WARNING | `certificate_organization_identifier`, `client_id` |

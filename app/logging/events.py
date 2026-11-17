@@ -34,11 +34,11 @@ class Log(_Base):
         {
             _APP: (
                 "certificate_organization_identifier",
-                "resource_organization_identifier",
+                "token_organization_identifier",
                 "client_id",
                 "token_id",
             ),
-            _SIEM: ("certificate_organization_identifier", "resource_organization_identifier", "client_id"),
+            _SIEM: ("certificate_organization_identifier", "token_organization_identifier", "client_id"),
         },
     )
     MISSING_ORGANIZATION_CLAIM = LogEvent(

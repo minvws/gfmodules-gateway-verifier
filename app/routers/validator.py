@@ -114,7 +114,7 @@ def _validate_oin(
             logger,
             Log.ORGANIZATION_AUTHORIZATION_MISMATCH,
             "certificate organization does not match JWT organization",
-            fields={**_client_fields(auth_headers, claims), "resource_organization_identifier": str(act_sub)},
+            fields={**_client_fields(auth_headers, claims), "token_organization_identifier": str(act_sub)},
         )
         return PlainTextResponse("Certificate OIN does not match JWT OIN", status_code=400)
 

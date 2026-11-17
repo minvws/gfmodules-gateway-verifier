@@ -177,7 +177,7 @@ def test_oin_mismatch_logs_003(client: TestClient, jwt_service: MagicMock, caplo
         client.get("/validate", headers=headers())
     record = _record(caplog, Log.ORGANIZATION_AUTHORIZATION_MISMATCH.event_id)
     assert record.certificate_organization_identifier == CLIENT_ORGANIZATION_ID  # type: ignore[attr-defined]
-    assert record.resource_organization_identifier == OTHER_ORGANIZATION_ID  # type: ignore[attr-defined]
+    assert record.token_organization_identifier == OTHER_ORGANIZATION_ID  # type: ignore[attr-defined]
 
 
 def test_common_name_mismatch_logs_common_name_authorization_mismatch(
