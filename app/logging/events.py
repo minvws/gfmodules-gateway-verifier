@@ -35,7 +35,6 @@ class Log(_Base):
             _APP: (
                 "certificate_organization_identifier",
                 "resource_organization_identifier",
-                "resource_id",
                 "client_id",
                 "token_id",
             ),
@@ -94,8 +93,8 @@ class Log(_Base):
         logging.WARNING,
         (_APP, _SIEM),
         {
-            _APP: ("token_present", "client_id", "certificate_organization_identifier"),
-            _SIEM: ("client_id", "certificate_organization_identifier"),
+            _APP: ("token_present", "certificate_organization_identifier"),
+            _SIEM: ("certificate_organization_identifier",),
         },
     )
     SYS_APP_STARTED = _Base.SYS_APP_STARTED.with_id("200601")

@@ -1,10 +1,13 @@
 import json
 import logging
+from contextlib import ExitStack
+from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from gfmodules.logging.testing import capture_stream
 
 from app.config import (
     Config,
@@ -195,6 +198,51 @@ def test_common_name_mismatch_logs_common_name_authorization_mismatch(
     assert record.certificate_organization_identifier == CLIENT_ORGANIZATION_ID  # type: ignore[attr-defined]
     assert record.token_common_name == "other-common-name"  # type: ignore[attr-defined]
     assert record.client_domains == [CLIENT_COMMON_NAME]  # type: ignore[attr-defined]
+
+
+_TOKEN = {"sub": ORGANIZATION_ID, "client_id": CLIENT_ID, "jti": TOKEN_ID}
+_ACT = {"sub": CLIENT_ORGANIZATION_ID, "cn": CLIENT_COMMON_NAME}
+
+
+@pytest.mark.parametrize(
+    "name,request_headers,claims",
+    [
+        (
+            "MISSING_AUTHORIZATION_HEADER",
+            {"x-gf-act-sub": CLIENT_ORGANIZATION_ID, "Authorization": "Bearer valid.jwt.token"},
+            {**_TOKEN, "act": _ACT},
+        ),
+        ("MALFORMED_AUTHORIZATION_HEADER", {**headers(), "Authorization": "Basic xx"}, {**_TOKEN, "act": _ACT}),
+        ("JWT_VERIFICATION_FAILED", headers(), JwtException("expired")),
+        ("MISSING_ACT_CLAIM", headers(), _TOKEN),
+        ("MISSING_ORGANIZATION_CLAIM", headers(), {**_TOKEN, "act": {"cn": CLIENT_COMMON_NAME}}),
+        ("ORGANIZATION_AUTHORIZATION_MISMATCH", headers(), {**_TOKEN, "act": {**_ACT, "sub": OTHER_ORGANIZATION_ID}}),
+        ("COMMON_NAME_AUTHORIZATION_MISMATCH", headers(), {**_TOKEN, "act": {**_ACT, "cn": "other-common-name"}}),
+        ("AUTHENTICATION_SUCCESS", headers(), {**_TOKEN, "act": _ACT}),
+    ],
+)
+def test_every_declared_field_is_filled(
+    client: TestClient,
+    jwt_service: MagicMock,
+    name: str,
+    request_headers: dict[str, str],
+    claims: dict[str, Any] | JwtException,
+) -> None:
+    if isinstance(claims, JwtException):
+        jwt_service.verify.side_effect = claims
+    else:
+        jwt_service.verify.return_value.claims = json.dumps(claims)
+    event = getattr(Log, name)
+
+    with ExitStack() as stack:
+        captured = {
+            stream: stack.enter_context(capture_stream(stream, "app.routers.validator")) for stream in event.fields
+        }
+        client.get("/validate", headers=request_headers)
+
+    for stream, messages in captured.items():
+        unfilled = [field for field in event.fields[stream] if messages[-1].get(field) is None]
+        assert not unfilled, f"{name} leaves declared {stream} fields empty: {unfilled}"
 
 
 def test_success_logs_004(client: TestClient, caplog: pytest.LogCaptureFixture) -> None:

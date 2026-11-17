@@ -42,7 +42,7 @@ def streams() -> Iterator[Streams]:
         yield logger, app_messages, siem_messages
 
 
-def test_authorization_mismatch_drops_resource_id_from_siem(
+def test_authorization_mismatch_drops_token_id_from_siem(
     streams: Streams,
 ) -> None:
     logger, app_messages, siem_messages = streams
@@ -53,7 +53,7 @@ def test_authorization_mismatch_drops_resource_id_from_siem(
         fields={
             "certificate_organization_identifier": "00000123",
             "resource_organization_identifier": "00000001",
-            "resource_id": "00000002",
+            "token_id": "token-1",
             "client_id": "00000001",
         },
     )
@@ -61,8 +61,8 @@ def test_authorization_mismatch_drops_resource_id_from_siem(
     app_msg = app_messages[0]
     siem_msg = siem_messages[0]
 
-    assert app_msg["resource_id"] == "00000002"
-    assert "resource_id" not in siem_msg
+    assert app_msg["token_id"] == "token-1"
+    assert "token_id" not in siem_msg
     assert app_msg["method"] == "GET"
     assert siem_msg["method"] == "GET"
     # resource_organization_identifier/certificate_organization_identifier in both
