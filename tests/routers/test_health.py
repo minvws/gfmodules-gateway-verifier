@@ -7,19 +7,22 @@ from gfmodules.logging.testing import capture_records
 from app.container import get_jwt_service
 from app.logging.events import Log
 from app.routers.health import router
+from app.services.jwt import JWTService
+
+JWKS_DOWN = "JWKS endpoint unreachable: Timeout"
 
 
 def test_health_reports_the_jwks_endpoint() -> None:
-    jwt_service = MagicMock()
+    jwt_service = MagicMock(spec=JWTService)
     app = FastAPI()
     app.include_router(router)
     app.dependency_overrides[get_jwt_service] = lambda: jwt_service
     client = TestClient(app)
 
     with capture_records("app.routers.health") as captured:
-        jwt_service.health_check.return_value = True
+        jwt_service.health_error.return_value = None
         healthy = client.get("/health")
-        jwt_service.health_check.return_value = False
+        jwt_service.health_error.return_value = JWKS_DOWN
         unhealthy = client.get("/health")
 
     assert healthy.status_code == 200
@@ -30,3 +33,4 @@ def test_health_reports_the_jwks_endpoint() -> None:
     assert len(events) == 1
     assert events[0].message["component"] == "jwks_url"
     assert events[0].message["status"] == "error"
+    assert events[0].message["error_detail"] == JWKS_DOWN

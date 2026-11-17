@@ -23,15 +23,6 @@ class HttpService:
         self._mtls_key = mtls_key
         self._verify_ca = verify_ca
 
-    def server_healthy(self, sub_route: str = "") -> bool:
-        try:
-            response = self.do_request(method="GET", sub_route=sub_route)
-            response.raise_for_status()
-        except Exception:
-            logger.exception("Health check failed")
-            return False
-        return True
-
     def do_request(
         self,
         method: Literal["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"],
