@@ -2,11 +2,11 @@ import configparser
 import logging
 import os
 from enum import Enum
-from typing import Any
+from typing import Any, Self
 
 from gfmodules.logging import ConfigLogging as GFConfigLogging
 from gfmodules.logging.ini import split_comma_separated
-from pydantic import BaseModel, Field, ValidationError, field_validator
+from pydantic import BaseModel, Field, ValidationError, field_validator, model_validator
 
 logger = logging.getLogger(__name__)
 
@@ -87,8 +87,14 @@ class ConfigStats(BaseModel):
 
 class ConfigKongProxy(BaseModel):
     enabled: bool = Field(default=False)
-    url: str
+    url: str = Field(default="")
     allow_client_correlation_id: bool = Field(default=False)
+
+    @model_validator(mode="after")
+    def _require_url_when_enabled(self) -> Self:
+        if self.enabled and not self.url:
+            raise ValueError("url is required when the proxy is enabled")
+        return self
 
 
 class Config(BaseModel):
