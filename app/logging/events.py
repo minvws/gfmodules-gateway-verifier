@@ -91,7 +91,7 @@ class Log(_Base):
     SYS_APP_CRASHED = _Base.SYS_APP_CRASHED.with_id("200602")
     SYS_UNHANDLED_EXCEPTION = _Base.SYS_UNHANDLED_EXCEPTION.with_id("200604")
     SYS_MISSING_CORRELATION_ID = _Base.SYS_MISSING_CORRELATION_ID.replace(
-        event_id="200606",
+        event_id="200628",
         streams=(_APP, _SIEM),
         fields={
             _APP: ("endpoint", "method"),
