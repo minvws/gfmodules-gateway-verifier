@@ -1,5 +1,5 @@
 import pytest
-from gfmodules.logging import LogEvent, declared_events
+from gfmodules.logging import LogEvent, LoggingStreams, declared_events
 from gfmodules.logging.testing import assert_catalogue_complete, assert_event_overview_current
 
 from app.logging.events import Log
@@ -22,6 +22,12 @@ def test_every_allow_list_names_a_stream_the_event_routes() -> None:
     for name, event in declared_events(Log):
         unrouted = set(event.fields) - set(event.streams)
         assert not unrouted, f"{name} allow-lists fields for streams it does not route: {unrouted}"
+
+
+def test_a_missing_correlation_id_reaches_the_siem() -> None:
+    event = Log.SYS_MISSING_CORRELATION_ID
+    assert LoggingStreams.SIEM in event.streams
+    assert event.fields[LoggingStreams.SIEM] == ("endpoint", "method")
 
 
 @pytest.mark.parametrize(
