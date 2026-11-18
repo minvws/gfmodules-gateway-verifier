@@ -93,8 +93,4 @@ class Log(_Base):
     SYS_MISSING_CORRELATION_ID = _Base.SYS_MISSING_CORRELATION_ID.replace(
         event_id="200628",
         streams=(_APP, _SIEM),
-        fields={
-            _APP: ("endpoint", "method"),
-            _SIEM: ("endpoint", "method"),
-        },
     )
