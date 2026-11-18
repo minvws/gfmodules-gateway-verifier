@@ -34,11 +34,11 @@ class Log(_Base):
         {
             _APP: (
                 "certificate_organization_identifier",
-                "resource_organization_identifier",
+                "token_organization_identifier",
                 "client_id",
                 "token_id",
             ),
-            _SIEM: ("certificate_organization_identifier", "resource_organization_identifier", "client_id"),
+            _SIEM: ("certificate_organization_identifier", "token_organization_identifier", "client_id"),
         },
     )
     MISSING_ORGANIZATION_CLAIM = LogEvent(
@@ -97,8 +97,14 @@ class Log(_Base):
             _SIEM: ("certificate_organization_identifier",),
         },
     )
+    HEALTH_UNHEALTHY = LogEvent(
+        "200600",
+        logging.ERROR,
+        (_APP, _SIEM),
+        {_APP: ("component", "status", "error_detail"), _SIEM: ("component", "status")},
+    )
     SYS_APP_STARTED = _Base.SYS_APP_STARTED.with_id("200601")
     SYS_APP_STOPPED = _Base.SYS_APP_STOPPED.with_id("200602")
     SYS_APP_CRASHED = _Base.SYS_APP_CRASHED.with_id("200602")
     SYS_UNHANDLED_EXCEPTION = _Base.SYS_UNHANDLED_EXCEPTION.with_id("200604")
-    SYS_MISSING_CORRELATION_ID = _Base.SYS_MISSING_CORRELATION_ID.with_id("200606")
+    SYS_MISSING_CORRELATION_ID = _Base.SYS_MISSING_CORRELATION_ID.replace(event_id="200628", streams=(_APP, _SIEM))

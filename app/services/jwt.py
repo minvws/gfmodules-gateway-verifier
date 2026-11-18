@@ -25,8 +25,15 @@ class JWTService:
             jwks_url, timeout=5, mtls_cert=mtls_cert, mtls_key=mtls_key, verify_ca=verify_ca
         )
 
-    def health_check(self) -> bool:
-        return self._http_service.server_healthy()
+    def health_error(self) -> str | None:
+        try:
+            response = self._http_service.do_request(method="GET")
+        except Exception as e:
+            logger.exception("JWKS endpoint health check failed")
+            return f"JWKS endpoint check failed: {type(e).__name__}"
+        if not response.ok:
+            return f"JWKS endpoint returned status {response.status_code}"
+        return None
 
     def refresh_jwks(self) -> None:
         logger.debug("Requesting new JWKS")

@@ -28,17 +28,18 @@ Every event carries these on every stream, whenever the request context holds a 
 | --- | --- | --- | --- |
 | `JWT_VERIFICATION_FAILED` | 200400 | WARNING | `error_reason`, `token_present` |
 | `MALFORMED_AUTHORIZATION_HEADER` | 200409 | WARNING | `error_reason`, `token_present` |
-| `ORGANIZATION_AUTHORIZATION_MISMATCH` | 200407 | WARNING | `certificate_organization_identifier`, `resource_organization_identifier`, `client_id`, `token_id` |
+| `ORGANIZATION_AUTHORIZATION_MISMATCH` | 200407 | WARNING | `certificate_organization_identifier`, `token_organization_identifier`, `client_id`, `token_id` |
 | `MISSING_ORGANIZATION_CLAIM` | 200408 | WARNING | `certificate_organization_identifier`, `client_id`, `token_id` |
 | `MISSING_ACT_CLAIM` | 200410 | WARNING | `certificate_organization_identifier`, `client_id`, `token_id` |
 | `COMMON_NAME_AUTHORIZATION_MISMATCH` | 200411 | WARNING | `certificate_organization_identifier`, `client_id`, `token_id`, `token_common_name`, `client_domains` |
 | `AUTHENTICATION_SUCCESS` | 200403 | INFO | `certificate_organization_identifier`, `represented_organization_identifier`, `client_id`, `token_id` |
 | `MISSING_AUTHORIZATION_HEADER` | 200404 | WARNING | `token_present`, `certificate_organization_identifier` |
+| `HEALTH_UNHEALTHY` | 200600 | ERROR | `component`, `status`, `error_detail` |
 | `SYS_APP_STARTED` | 200601 | INFO | `version`, `config_path` |
 | `SYS_APP_STOPPED` | 200602 | INFO | `shutdown_reason`, `last_exception_type` |
 | `SYS_APP_CRASHED` | 200602 | CRITICAL | `shutdown_reason`, `last_exception_type` |
 | `SYS_UNHANDLED_EXCEPTION` | 200604 | ERROR | `exception_type`, `endpoint`, `method` |
-| `SYS_MISSING_CORRELATION_ID` | 200606 | ERROR | `endpoint`, `method` |
+| `SYS_MISSING_CORRELATION_ID` | 200628 | ERROR | `endpoint`, `method` |
 | `ACCESS_REQUEST` | 100 | INFO | `endpoint`, `method`, `status_code`, `status_code_missing`, `duration_ms`, `body`, `body_truncated` |
 
 ## Stream `siem`
@@ -47,12 +48,14 @@ Every event carries these on every stream, whenever the request context holds a 
 | --- | --- | --- | --- |
 | `JWT_VERIFICATION_FAILED` | 200400 | WARNING | `error_reason`, `token_present` |
 | `MALFORMED_AUTHORIZATION_HEADER` | 200409 | WARNING | `error_reason`, `token_present` |
-| `ORGANIZATION_AUTHORIZATION_MISMATCH` | 200407 | WARNING | `certificate_organization_identifier`, `resource_organization_identifier`, `client_id` |
+| `ORGANIZATION_AUTHORIZATION_MISMATCH` | 200407 | WARNING | `certificate_organization_identifier`, `token_organization_identifier`, `client_id` |
 | `MISSING_ORGANIZATION_CLAIM` | 200408 | WARNING | `certificate_organization_identifier`, `client_id` |
 | `MISSING_ACT_CLAIM` | 200410 | WARNING | `certificate_organization_identifier`, `client_id` |
 | `COMMON_NAME_AUTHORIZATION_MISMATCH` | 200411 | WARNING | `certificate_organization_identifier`, `client_id` |
 | `AUTHENTICATION_SUCCESS` | 200403 | INFO | `certificate_organization_identifier`, `represented_organization_identifier` |
 | `MISSING_AUTHORIZATION_HEADER` | 200404 | WARNING | `certificate_organization_identifier` |
+| `HEALTH_UNHEALTHY` | 200600 | ERROR | `component`, `status` |
 | `SYS_APP_STOPPED` | 200602 | INFO | `shutdown_reason` |
 | `SYS_APP_CRASHED` | 200602 | CRITICAL | `shutdown_reason` |
 | `SYS_UNHANDLED_EXCEPTION` | 200604 | ERROR | `exception_type`, `endpoint`, `method` |
+| `SYS_MISSING_CORRELATION_ID` | 200628 | ERROR | *none* |

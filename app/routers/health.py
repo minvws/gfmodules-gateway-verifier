@@ -1,10 +1,12 @@
 import logging
 from typing import Annotated
 
+import gfmodules.logging as gflog
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
 from app.container import get_jwt_service
+from app.logging.events import Log
 from app.services.jwt import JWTService
 
 logger = logging.getLogger(__name__)
@@ -56,18 +58,25 @@ def ok_or_error(value: bool) -> str:
     tags=["Health"],
 )
 def health(jwt_service: Annotated[JWTService, Depends(get_jwt_service)]) -> JSONResponse:
-    logger.info("Checking database health")
+    logger.debug("Checking application health")
 
-    components = {
-        "jwks_url": ok_or_error(jwt_service.health_check()),
-    }
-    healthy = ok_or_error(all(components.values()))
-    content = {"status": healthy, "components": components}
-    if healthy == "ok":
-        return JSONResponse(content=content)
-    unhealthy = [name for name, status in components.items() if status != "ok"]
-    logger.warning(f"Unhealthy components: {', '.join(unhealthy)}")
+    errors = {"jwks_url": jwt_service.health_error()}
+    components = {name: ok_or_error(error is None) for name, error in errors.items()}
+    healthy = all(error is None for error in errors.values())
+
+    for name, error in errors.items():
+        if error is not None:
+            gflog.emit(
+                logger,
+                Log.HEALTH_UNHEALTHY,
+                "Health check unhealthy",
+                fields={"component": name, "status": "error", "error_detail": error},
+            )
+
     return JSONResponse(
-        status_code=503,
-        content=content,
+        status_code=200 if healthy else 503,
+        content={
+            "status": ok_or_error(healthy),
+            "components": components,
+        },
     )

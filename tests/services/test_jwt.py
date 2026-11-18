@@ -7,7 +7,8 @@ import pytest
 from jwcrypto import jwk, jwt
 from jwcrypto.common import base64url_decode, base64url_encode
 from requests import Response
-from requests.exceptions import HTTPError
+from requests.exceptions import ConnectionError as RequestsConnectionError
+from requests.exceptions import HTTPError, Timeout
 
 from app.services.jwt import JWKS_TTL, JwtException, JWTService
 
@@ -289,3 +290,33 @@ def test_get_jwks_propagates_refresh_error_and_preserves_expired_cache(
     response.raise_for_status.assert_called_once_with()
     assert jwt_service.jwks_store is previous_store
     assert jwt_service.jwks_ttl == previous_ttl
+
+
+def jwks_response(status_code: int) -> Response:
+    response = Response()
+    response.status_code = status_code
+    return response
+
+
+def test_health_error_is_none_when_the_jwks_endpoint_responds(jwt_service: JWTService) -> None:
+    with patch.object(jwt_service._http_service, "do_request", return_value=jwks_response(200)):
+        assert jwt_service.health_error() is None
+
+
+@pytest.mark.parametrize("status_code", [404, 503])
+def test_health_error_reports_a_failing_status(jwt_service: JWTService, status_code: int) -> None:
+    with patch.object(jwt_service._http_service, "do_request", return_value=jwks_response(status_code)):
+        assert jwt_service.health_error() == f"JWKS endpoint returned status {status_code}"
+
+
+@pytest.mark.parametrize(
+    "error,expected_error",
+    [
+        (RequestsConnectionError(), "JWKS endpoint check failed: ConnectionError"),
+        (Timeout(), "JWKS endpoint check failed: Timeout"),
+        (OSError("invalid certificate path"), "JWKS endpoint check failed: OSError"),
+    ],
+)
+def test_health_error_reports_a_failed_check(jwt_service: JWTService, error: Exception, expected_error: str) -> None:
+    with patch.object(jwt_service._http_service, "do_request", side_effect=error):
+        assert jwt_service.health_error() == expected_error
