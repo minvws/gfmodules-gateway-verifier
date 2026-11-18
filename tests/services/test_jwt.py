@@ -312,12 +312,11 @@ def test_health_error_reports_a_failing_status(jwt_service: JWTService, status_c
 @pytest.mark.parametrize(
     "error,expected_error",
     [
-        (RequestsConnectionError(), "JWKS endpoint unreachable: ConnectionError"),
-        (Timeout(), "JWKS endpoint unreachable: Timeout"),
+        (RequestsConnectionError(), "JWKS endpoint check failed: ConnectionError"),
+        (Timeout(), "JWKS endpoint check failed: Timeout"),
+        (OSError("invalid certificate path"), "JWKS endpoint check failed: OSError"),
     ],
 )
-def test_health_error_reports_an_unreachable_endpoint(
-    jwt_service: JWTService, error: Exception, expected_error: str
-) -> None:
+def test_health_error_reports_a_failed_check(jwt_service: JWTService, error: Exception, expected_error: str) -> None:
     with patch.object(jwt_service._http_service, "do_request", side_effect=error):
         assert jwt_service.health_error() == expected_error

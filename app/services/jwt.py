@@ -4,7 +4,6 @@ from datetime import UTC, datetime, timedelta
 from jwcrypto import jwk, jwt
 from jwcrypto.common import JWException
 from jwcrypto.jwt import JWT
-from requests.exceptions import RequestException
 
 from app.services.http_service import HttpService
 
@@ -29,8 +28,9 @@ class JWTService:
     def health_error(self) -> str | None:
         try:
             response = self._http_service.do_request(method="GET")
-        except RequestException as e:
-            return f"JWKS endpoint unreachable: {type(e).__name__}"
+        except Exception as e:
+            logger.exception("JWKS endpoint health check failed")
+            return f"JWKS endpoint check failed: {type(e).__name__}"
         if not response.ok:
             return f"JWKS endpoint returned status {response.status_code}"
         return None

@@ -9,7 +9,7 @@ from app.logging.events import Log
 from app.routers.health import router
 from app.services.jwt import JWTService
 
-JWKS_DOWN = "JWKS endpoint unreachable: Timeout"
+JWKS_DOWN = "JWKS endpoint check failed: Timeout"
 
 
 def test_health_reports_the_jwks_endpoint() -> None:
