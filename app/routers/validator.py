@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Annotated
+from typing import Annotated, Any
 
 import gfmodules.logging as gflog
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
@@ -23,6 +23,14 @@ def _aud_str(aud: object) -> str:
     return str(aud) if aud is not None else ""
 
 
+def _client_fields(auth_headers: AuthHeaders, claims: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "certificate_organization_identifier": auth_headers.certificate_organization_identifier,
+        "client_id": claims.get("client_id"),
+        "token_id": claims.get("jti"),
+    }
+
+
 def run_validate(
     request: Request,
     jwt_service: JWTService,
@@ -38,9 +46,8 @@ def run_validate(
             Log.MISSING_AUTHORIZATION_HEADER,
             "Headers are not correctly enforced in gateway, invalid authorization headers in request.",
             fields={
-                "failure_reason": "missing_oin_claim",
-                "token_present": False,
-                "request_headers": dict(request.headers),
+                "token_present": "authorization" in request.headers,
+                "certificate_organization_identifier": request.headers.get("x-gf-act-sub"),
             },
             exc_info=True,
         )
@@ -88,12 +95,7 @@ def _validate_oin(
             logger,
             Log.MISSING_ACT_CLAIM,
             "Missing act in claims",
-            fields={
-                "certificate_organization_identifier": auth_headers.certificate_organization_identifier,
-                "client_domains": auth_headers.client_domains,
-                "failure_reason": "oin_mismatch",
-                "claims": claims,
-            },
+            fields=_client_fields(auth_headers, claims),
         )
         return PlainTextResponse("Missing `act` in claims", status_code=400)
 
@@ -103,12 +105,7 @@ def _validate_oin(
             logger,
             Log.MISSING_ORGANIZATION_CLAIM,
             "missing OIN claim in token",
-            fields={
-                "certificate_organization_identifier": auth_headers.certificate_organization_identifier,
-                "client_domains": auth_headers.client_domains,
-                "failure_reason": "missing_oin_claim",
-                "claims": claims,
-            },
+            fields=_client_fields(auth_headers, claims),
         )
         return PlainTextResponse("Missing OIN claim in token", status_code=400)
 
@@ -117,12 +114,7 @@ def _validate_oin(
             logger,
             Log.ORGANIZATION_AUTHORIZATION_MISMATCH,
             "certificate OIN does not match JWT OIN",
-            fields={
-                "certificate_organization_identifier": auth_headers.certificate_organization_identifier,
-                "client_domains": auth_headers.client_domains,
-                "failure_reason": "oin_mismatch",
-                "claims": claims,
-            },
+            fields={**_client_fields(auth_headers, claims), "resource_organization_identifier": str(act_sub)},
         )
         return PlainTextResponse("Certificate OIN does not match JWT OIN", status_code=400)
 
@@ -133,10 +125,9 @@ def _validate_oin(
             Log.COMMON_NAME_AUTHORIZATION_MISMATCH,
             "JWT act.cn does not match certificate CommonName or SAN",
             fields={
-                "certificate_organization_identifier": auth_headers.certificate_organization_identifier,
+                **_client_fields(auth_headers, claims),
+                "token_common_name": act_cn,
                 "client_domains": auth_headers.client_domains,
-                "failure_reason": "oin_mismatch",
-                "claims": claims,
             },
         )
 
@@ -155,7 +146,12 @@ def _validate_oin(
 
     if claims.get("source_id"):
         headers["x-gf-source-id"] = str(claims["source_id"])
-    gflog.emit(logger, Log.AUTHENTICATION_SUCCESS, "successfully validated JWT + Client", fields={"claims": claims})
+    gflog.emit(
+        logger,
+        Log.AUTHENTICATION_SUCCESS,
+        "successfully validated JWT + Client",
+        fields={**_client_fields(auth_headers, claims), "represented_organization_identifier": claims.get("sub")},
+    )
 
     return JSONResponse(headers, status_code=200)
 
