@@ -72,9 +72,7 @@ async def proxy(
         if key.lower() not in _SKIP_REQUEST_HEADERS
         and (not key.lower().startswith("x-gf-") or key.lower() in tunnelled_gf_headers)
     }
-    headers.update(
-        {key: str(value) for key, value in identity.items() if key.startswith("x-gf-") and value is not None}
-    )
+    headers.update({key: str(value) for key, value in identity.items() if key.startswith("x-gf-")})
 
     # Preserve the request path and query string on the backend URL.
     target = config.kong_proxy.url.rstrip("/")

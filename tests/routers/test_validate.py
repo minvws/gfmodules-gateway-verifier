@@ -153,3 +153,15 @@ class TestORGANIZATION_IDMatching:
 
         response = client.get("/validate", headers=headers())
         assert response.status_code == 400
+
+
+class TestIdentityHeaders:
+    def test_omits_headers_for_claims_the_token_lacks(self, client: TestClient, jwt_service: MagicMock) -> None:
+        token = MagicMock()
+        token.claims = json.dumps({"sub": ORGANIZATION_ID, "act": {"sub": CLIENT_ORGANIZATION_ID, "cn": "common-name"}})
+        jwt_service.verify.return_value = token
+
+        response = client.get("/validate", headers=headers())
+
+        assert response.status_code == 200
+        assert None not in response.json().values()

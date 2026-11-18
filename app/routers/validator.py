@@ -90,14 +90,14 @@ def _validate_oin(
     claims = json.loads(verified_token.claims)
 
     act = claims.get("act")
-    if act is None:
+    if not isinstance(act, dict):
         gflog.emit(
             logger,
             Log.MISSING_ACT_CLAIM,
-            "Missing act in claims",
+            "Missing or invalid act in claims",
             fields=_client_fields(auth_headers, claims),
         )
-        return PlainTextResponse("Missing `act` in claims", status_code=400)
+        return PlainTextResponse("Missing or invalid `act` in claims", status_code=400)
 
     act_sub = act.get("sub")
     if not act_sub:
@@ -133,7 +133,7 @@ def _validate_oin(
 
         return PlainTextResponse("JWT `act.cn` does not match certificate CommonName", status_code=400)
 
-    headers: dict[str, str] = {
+    headers: dict[str, str | None] = {
         "x-gf-cert-type": "OIN",
         "x-gf-audience": _aud_str(claims.get("aud")),
         "x-gf-scope": claims.get("scope", ""),
@@ -153,7 +153,7 @@ def _validate_oin(
         fields={**_client_fields(auth_headers, claims), "represented_organization_identifier": claims.get("sub")},
     )
 
-    return JSONResponse(headers, status_code=200)
+    return JSONResponse({key: value for key, value in headers.items() if value is not None}, status_code=200)
 
 
 @router.get(
@@ -186,7 +186,10 @@ def _validate_oin(
                             "summary": "JWT verification failed",
                             "value": "Token verification failed",
                         },
-                        "missing_act": {"summary": "Missing act claim", "value": "Missing `act` in claims"},
+                        "missing_act": {
+                            "summary": "Missing or invalid act claim",
+                            "value": "Missing or invalid `act` in claims",
+                        },
                         "missing_oin": {
                             "summary": "Missing acting organization identifier",
                             "value": "Missing OIN claim in token",
