@@ -3,13 +3,13 @@ import logging
 from typing import Annotated, Any
 
 import gfmodules.logging as gflog
-from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from fastapi import APIRouter, Depends, Request, Response
 from starlette.responses import JSONResponse, PlainTextResponse
 
 from app.config import Config, get_config
 from app.container import get_jwt_service
 from app.logging.events import Log
-from app.models.auth_headers import AuthHeaders
+from app.models.auth_headers import AuthHeaders, GatewayHeadersError
 from app.services.jwt import JwtException, JWTService
 
 logger = logging.getLogger(__name__)
@@ -40,18 +40,28 @@ def run_validate(
 
     try:
         auth_headers = AuthHeaders.from_request(request)
-    except ValueError:
+    except GatewayHeadersError as e:
+        # The gateway must inject these from the client certificate; reaching this means it was bypassed or is
+        # misconfigured. Log only the header names, never their (caller-controlled) values.
+        gflog.emit(
+            logger,
+            Log.GATEWAY_HEADERS_INVALID,
+            "gateway identity headers are missing or invalid",
+            fields={"invalid_headers": e.invalid_headers, "token_present": "authorization" in request.headers},
+        )
+        return PlainTextResponse("Unauthorized request", status_code=401)
+
+    if auth_headers.bearer is None:
         gflog.emit(
             logger,
             Log.MISSING_AUTHORIZATION_HEADER,
-            "Headers are not correctly enforced in gateway, invalid authorization headers in request.",
+            "request to protected endpoint without Authorization header",
             fields={
-                "token_present": "authorization" in request.headers,
-                "certificate_organization_identifier": request.headers.get("x-gf-act-sub"),
+                "token_present": False,
+                "certificate_organization_identifier": auth_headers.certificate_organization_identifier,
             },
-            exc_info=True,
         )
-        raise HTTPException(status_code=500, detail="Unauthorized request")
+        return PlainTextResponse("Bearer authorization header is required", status_code=401)
     if not auth_headers.bearer.startswith("Bearer "):
         gflog.emit(
             logger,
@@ -207,12 +217,22 @@ def _validate_oin(
             },
         },
         401: {
-            "description": "Authorization header does not use the Bearer scheme",
-            "content": {"text/plain": {"example": "Bearer authorization header is required"}},
-        },
-        500: {
-            "description": "Required gateway authentication headers are missing or invalid",
-            "content": {"application/json": {"example": {"detail": "Unauthorized request"}}},
+            "description": "Gateway identity headers are missing or invalid, or the Authorization header is missing "
+            "or does not use the Bearer scheme",
+            "content": {
+                "text/plain": {
+                    "examples": {
+                        "gateway_headers_invalid": {
+                            "summary": "Gateway identity headers missing or invalid",
+                            "value": "Unauthorized request",
+                        },
+                        "bearer_required": {
+                            "summary": "Missing or non-Bearer Authorization header",
+                            "value": "Bearer authorization header is required",
+                        },
+                    }
+                }
+            },
         },
     },
 )

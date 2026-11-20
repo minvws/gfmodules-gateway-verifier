@@ -97,6 +97,15 @@ class Log(_Base):
             _SIEM: ("certificate_organization_identifier",),
         },
     )
+    GATEWAY_HEADERS_INVALID = LogEvent(
+        "200412",
+        logging.ERROR,
+        (_APP, _SIEM),
+        {
+            _APP: ("invalid_headers", "token_present"),
+            _SIEM: ("invalid_headers",),
+        },
+    )
     HEALTH_UNHEALTHY = LogEvent(
         "200600",
         logging.ERROR,

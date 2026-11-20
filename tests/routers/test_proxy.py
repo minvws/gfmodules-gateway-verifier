@@ -106,7 +106,7 @@ class TestProxyValidation:
         )
         assert response.status_code == 401
 
-    def test_missing_auth_returns_500(self, client: TestClient) -> None:
+    def test_missing_auth_returns_401(self, client: TestClient) -> None:
         response = client.post(
             "/proxy",
             headers={
@@ -114,25 +114,25 @@ class TestProxyValidation:
                 "x-gf-act-cn": "common-name",
             },
         )
-        assert response.status_code == 500
+        assert response.status_code == 401
 
-    def test_missing_client_id_returns_500(self, client: TestClient) -> None:
+    def test_missing_client_id_returns_401(self, client: TestClient) -> None:
         response = client.post(
             "/proxy",
             headers={
                 "x-gf-act-cn": "common-name",
             },
         )
-        assert response.status_code == 500
+        assert response.status_code == 401
 
-    def test_missing_common_name(self, client: TestClient, jwt_service: MagicMock) -> None:
+    def test_missing_common_name_returns_401(self, client: TestClient, jwt_service: MagicMock) -> None:
         response = client.post(
             "/proxy",
             headers={
                 "x-gf-act-sub": "organization-id",
             },
         )
-        assert response.status_code == 500
+        assert response.status_code == 401
 
 
 class TestProxyForwarding:
