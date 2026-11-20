@@ -34,6 +34,7 @@ Every event carries these on every stream, whenever the request context holds a 
 | `COMMON_NAME_AUTHORIZATION_MISMATCH` | 200411 | WARNING | `certificate_organization_identifier`, `client_id`, `token_id`, `token_common_name`, `client_domains` |
 | `AUTHENTICATION_SUCCESS` | 200403 | INFO | `certificate_organization_identifier`, `represented_organization_identifier`, `client_id`, `token_id` |
 | `MISSING_AUTHORIZATION_HEADER` | 200404 | WARNING | `token_present`, `certificate_organization_identifier` |
+| `GATEWAY_HEADERS_INVALID` | 200412 | ERROR | `invalid_headers`, `token_present` |
 | `HEALTH_UNHEALTHY` | 200600 | ERROR | `component`, `status`, `error_detail` |
 | `SYS_APP_STARTED` | 200601 | INFO | `version`, `config_path` |
 | `SYS_APP_STOPPED` | 200602 | INFO | `shutdown_reason`, `last_exception_type` |
@@ -54,6 +55,7 @@ Every event carries these on every stream, whenever the request context holds a 
 | `COMMON_NAME_AUTHORIZATION_MISMATCH` | 200411 | WARNING | `certificate_organization_identifier`, `client_id` |
 | `AUTHENTICATION_SUCCESS` | 200403 | INFO | `certificate_organization_identifier`, `represented_organization_identifier` |
 | `MISSING_AUTHORIZATION_HEADER` | 200404 | WARNING | `certificate_organization_identifier` |
+| `GATEWAY_HEADERS_INVALID` | 200412 | ERROR | `invalid_headers` |
 | `HEALTH_UNHEALTHY` | 200600 | ERROR | `component`, `status` |
 | `SYS_APP_STOPPED` | 200602 | INFO | `shutdown_reason` |
 | `SYS_APP_CRASHED` | 200602 | CRITICAL | `shutdown_reason` |

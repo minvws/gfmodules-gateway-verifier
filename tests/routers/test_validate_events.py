@@ -97,10 +97,32 @@ def _record(caplog: pytest.LogCaptureFixture, event_id: str) -> logging.LogRecor
 
 def test_missing_header_logs_005(client: TestClient, caplog: pytest.LogCaptureFixture) -> None:
     with caplog.at_level(logging.DEBUG):
-        client.get("/validate")
+        client.get("/validate", headers={"x-gf-act-sub": CLIENT_ORGANIZATION_ID, "x-gf-act-cn": CLIENT_COMMON_NAME})
     record = _record(caplog, Log.MISSING_AUTHORIZATION_HEADER.event_id)
     assert record.token_present is False  # type: ignore[attr-defined]
+    assert record.certificate_organization_identifier == CLIENT_ORGANIZATION_ID  # type: ignore[attr-defined]
     assert not hasattr(record, "request_headers")
+
+
+def test_missing_gateway_headers_logs_header_names(client: TestClient, caplog: pytest.LogCaptureFixture) -> None:
+    with caplog.at_level(logging.DEBUG):
+        client.get("/validate")
+    record = _record(caplog, Log.GATEWAY_HEADERS_INVALID.event_id)
+    assert record.levelno == logging.ERROR
+    assert record.invalid_headers == ["x-gf-act-sub", "x-gf-act-cn"]  # type: ignore[attr-defined]
+    assert record.token_present is False  # type: ignore[attr-defined]
+
+
+def test_invalid_gateway_header_value_is_never_logged(client: TestClient, caplog: pytest.LogCaptureFixture) -> None:
+    marker = "INJECTED-MARKER fake log line"
+    with caplog.at_level(logging.DEBUG):
+        client.get("/validate", headers={**headers(), "x-gf-act-sub": marker})
+    record = _record(caplog, Log.GATEWAY_HEADERS_INVALID.event_id)
+    assert record.invalid_headers == ["x-gf-act-sub"]  # type: ignore[attr-defined]
+    assert record.exc_info is None
+    for r in caplog.records:
+        assert "INJECTED-MARKER" not in r.getMessage()
+        assert "INJECTED-MARKER" not in repr(vars(r))
 
 
 def test_non_bearer_header_logs_001(client: TestClient, caplog: pytest.LogCaptureFixture) -> None:
@@ -212,6 +234,11 @@ _ACT = {"sub": CLIENT_ORGANIZATION_ID, "cn": CLIENT_COMMON_NAME}
     [
         (
             "MISSING_AUTHORIZATION_HEADER",
+            {"x-gf-act-sub": CLIENT_ORGANIZATION_ID, "x-gf-act-cn": CLIENT_COMMON_NAME},
+            {**_TOKEN, "act": _ACT},
+        ),
+        (
+            "GATEWAY_HEADERS_INVALID",
             {"x-gf-act-sub": CLIENT_ORGANIZATION_ID, "Authorization": "Bearer valid.jwt.token"},
             {**_TOKEN, "act": _ACT},
         ),
