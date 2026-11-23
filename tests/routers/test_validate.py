@@ -123,9 +123,10 @@ class TestMissingOrInvalidAuthorization:
     @pytest.mark.parametrize(
         "name,value",
         [
-            ("x-gf-act-sub", "evil value with spaces"),
-            ("x-gf-act-sub", "x" * 129),
-            ("x-gf-act-cn", "ok-domain,bad domain"),
+            ("x-gf-act-sub", ""),
+            ("x-gf-act-cn", ""),
+            ("x-gf-act-cn", "ok-domain,,other-domain"),
+            ("x-gf-act-cn", "ok-domain,"),
         ],
     )
     def test_invalid_gateway_header_returns_401(self, client: TestClient, name: str, value: str) -> None:

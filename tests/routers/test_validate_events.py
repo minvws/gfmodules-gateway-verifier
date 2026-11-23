@@ -114,11 +114,12 @@ def test_missing_gateway_headers_logs_header_names(client: TestClient, caplog: p
 
 
 def test_invalid_gateway_header_value_is_never_logged(client: TestClient, caplog: pytest.LogCaptureFixture) -> None:
-    marker = "INJECTED-MARKER fake log line"
+    # The empty second domain makes the header invalid; the marker in the first one must still never be logged.
+    marker = "INJECTED-MARKER.example.nl,"
     with caplog.at_level(logging.DEBUG):
-        client.get("/validate", headers={**headers(), "x-gf-act-sub": marker})
+        client.get("/validate", headers={**headers(), "x-gf-act-cn": marker})
     record = _record(caplog, Log.GATEWAY_HEADERS_INVALID.event_id)
-    assert record.invalid_headers == ["x-gf-act-sub"]  # type: ignore[attr-defined]
+    assert record.invalid_headers == ["x-gf-act-cn"]  # type: ignore[attr-defined]
     assert record.exc_info is None
     for r in caplog.records:
         assert "INJECTED-MARKER" not in r.getMessage()

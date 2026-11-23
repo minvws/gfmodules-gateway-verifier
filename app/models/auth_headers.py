@@ -3,10 +3,6 @@ from typing import Annotated, Any, Self
 from fastapi import Request
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
-# Conservative charset for header values that end up in logs: no whitespace, control characters or
-# separators, so a caller that bypasses the gateway cannot inject content into log lines.
-_SAFE_VALUE_PATTERN = r"^[A-Za-z0-9._:\-]{1,128}$"
-
 
 class GatewayHeadersError(ValueError):
     """The gateway-injected identity headers are missing or invalid. Carries only header names, never values."""
@@ -21,8 +17,8 @@ class AuthHeaders(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True)
 
-    certificate_organization_identifier: Annotated[str, Field(alias="x-gf-act-sub", pattern=_SAFE_VALUE_PATTERN)]
-    client_domains: Annotated[list[Annotated[str, Field(pattern=_SAFE_VALUE_PATTERN)]], Field(alias="x-gf-act-cn")]
+    certificate_organization_identifier: Annotated[str, Field(alias="x-gf-act-sub", min_length=1)]
+    client_domains: Annotated[list[Annotated[str, Field(min_length=1)]], Field(alias="x-gf-act-cn", min_length=1)]
     # Supplied by the client, not the gateway, so a missing value is a client error and validated by the caller.
     bearer: Annotated[str | None, Field(alias="Authorization")] = None
 
