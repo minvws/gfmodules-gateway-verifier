@@ -1,6 +1,6 @@
 publiccodeYmlVersion: "0.5"
 name: Generieke Functies Gateway Verifier
-url: https://github.com/minvws/gfmodules-nationale-verwijsindex-gateway-verifier
+url: https://github.com/minvws/gfmodules-gateway-verifier
 platforms:
   - web
 categories:

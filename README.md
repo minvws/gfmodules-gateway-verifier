@@ -145,12 +145,12 @@ make container-build-sa
 
 ## Installation
 
-Docker images are published to the [GitHub Container Registry](https://ghcr.io/minvws/gfmodules-nationale-verwijsindex-gateway-verifier)
+Docker images are published to the [GitHub Container Registry](https://ghcr.io/minvws/gfmodules-gateway-verifier)
 
 You can pull the latest image with the following command:
 
 ```bash
-docker pull ghcr.io/minvws/gfmodules-nationale-verwijsindex-gateway-verifier:latest
+docker pull ghcr.io/minvws/gfmodules-gateway-verifier:latest
 ```
 
 ## Contribution
