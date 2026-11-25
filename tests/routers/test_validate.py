@@ -96,7 +96,7 @@ def headers(token: str = "valid.jwt.token") -> dict[str, str]:
 
 
 class TestMissingOrInvalidAuthorization:
-    def test_no_authorization_header_returns_500(self, client: TestClient) -> None:
+    def test_no_authorization_header_returns_401(self, client: TestClient) -> None:
         response = client.get(
             "/validate",
             headers={
@@ -104,7 +104,35 @@ class TestMissingOrInvalidAuthorization:
                 "x-gf-act-cn": "common-name",
             },
         )
-        assert response.status_code == 500
+        assert response.status_code == 401
+        assert response.text == "Bearer authorization header is required"
+
+    def test_no_headers_at_all_returns_401(self, client: TestClient) -> None:
+        response = client.get("/validate")
+        assert response.status_code == 401
+        assert response.text == "Unauthorized request"
+
+    @pytest.mark.parametrize("missing", ["x-gf-act-sub", "x-gf-act-cn"])
+    def test_missing_gateway_header_returns_401(self, client: TestClient, missing: str) -> None:
+        request_headers = headers()
+        del request_headers[missing]
+        response = client.get("/validate", headers=request_headers)
+        assert response.status_code == 401
+        assert response.text == "Unauthorized request"
+
+    @pytest.mark.parametrize(
+        "name,value",
+        [
+            ("x-gf-act-sub", ""),
+            ("x-gf-act-cn", ""),
+            ("x-gf-act-cn", "ok-domain,,other-domain"),
+            ("x-gf-act-cn", "ok-domain,"),
+        ],
+    )
+    def test_invalid_gateway_header_returns_401(self, client: TestClient, name: str, value: str) -> None:
+        response = client.get("/validate", headers={**headers(), name: value})
+        assert response.status_code == 401
+        assert response.text == "Unauthorized request"
 
     def test_non_bearer_authorization_returns_401(self, client: TestClient) -> None:
         response = client.get(
